@@ -57,7 +57,7 @@ class ProvidersLiveIT {
                 .build();
     }
 
-    /** The model named by ACEMQ_AI_LIVE_OLLAMA_MODEL, or the smallest one installed. */
+    /** The model named by ACEMQ_AI_LIVE_OLLAMA_MODEL, or the smallest local one installed. */
     private static String installedOllamaModel() {
         String named = System.getenv("ACEMQ_AI_LIVE_OLLAMA_MODEL");
         try {
@@ -71,9 +71,13 @@ class ProvidersLiveIT {
                 if (m.path("name").asText().equals(named)) {
                     return named;
                 }
-                if (m.path("size").asLong(Long.MAX_VALUE) < size && !m.path("name").asText().contains("embed")) {
-                    size = m.path("size").asLong();
-                    smallest = m.path("name").asText();
+                // Skip embedding models, and ":cloud" entries, which are size 0 because they
+                // run on someone else's machine: exactly what this test must not call.
+                String n = m.path("name").asText();
+                long s = m.path("size").asLong(0);
+                if (s > 0 && s < size && !n.contains("embed") && !n.contains("cloud")) {
+                    size = s;
+                    smallest = n;
                 }
             }
             return named == null ? smallest : null;

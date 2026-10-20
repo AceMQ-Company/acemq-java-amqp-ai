@@ -97,8 +97,8 @@ public final class ScriptedModelServer implements AutoCloseable {
         return Collections.unmodifiableList(new ArrayList<>(authorizations));
     }
 
-    private void handle(HttpExchange ex, boolean openAi) throws IOException {
-        try (HttpExchange e = ex) {
+    private void handle(HttpExchange e, boolean openAi) throws IOException {
+        try {
             JsonNode body;
             try (InputStream in = e.getRequestBody()) {
                 body = JSON.readTree(in);
@@ -122,6 +122,8 @@ public final class ScriptedModelServer implements AutoCloseable {
             } else {
                 send(e, 200, openAi ? openAiReply(step) : ollamaReply(step));
             }
+        } finally {
+            e.close();  // HttpExchange is AutoCloseable only from Java 18
         }
     }
 
