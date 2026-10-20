@@ -84,7 +84,7 @@ asks the model again and may get a different answer. For reproducibility on Olla
 | `acemq-ai-anthropic` | 11 | The hosted Messages API through the official Java SDK, with the SDK's retries set to 0 |
 
 `acemq-ai-core` depends on `acemq-amqp-core` (whose version you choose; tested against
-0.7.15), Jackson and SLF4J, all already on an AceMQ classpath. Micrometer is optional.
+0.7.17), Jackson and SLF4J, all already on an AceMQ classpath. Micrometer is optional.
 
 ```xml
 <repository>

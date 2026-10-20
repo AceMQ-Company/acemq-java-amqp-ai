@@ -11,7 +11,7 @@ the `acemq-java-amqp` version it was tested against.
 
 ## [Unreleased]
 
-Phase 1, tested against `acemq-java-amqp` 0.7.15.
+Phase 1, tested against `acemq-java-amqp` 0.7.17.
 
 ### Added
 
