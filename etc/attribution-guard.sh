@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+# Scan a working tree and/or a commit range for AI-assistant attribution.
+# Exit 1 if anything is found. Used locally, by the git hooks, and by CI.
+#
+#   ./attribution-guard.sh                    # tree + commits vs origin/main
+#   ./attribution-guard.sh --path ../some-repo
+#   ./attribution-guard.sh --range origin/main..HEAD
+#   ./attribution-guard.sh --msg-file .git/COMMIT_EDITMSG
+#
+# Policy: docs/07-repositories-and-governance.md (ADR-010).
+set -euo pipefail
+
+PATTERN='claude|anthropic|co-authored-by[[:space:]]*:|\bgenerated with\b|assisted by (an )?ai|ai-generated|🤖'
+# The one co-author line that is not attribution: GitHub writes it into every
+# squash-merged Dependabot pull request. Matched to the bot's exact address, so a
+# co-author line naming anybody or anything else is still a violation.
+DEPENDABOT_COAUTHOR='^[[:space:]]*co-authored-by:[[:space:]]*dependabot\[bot\][[:space:]]*<49699333\+dependabot\[bot\]@users\.noreply\.github\.com>[[:space:]]*$'
+not_dependabot() { grep -viE "$DEPENDABOT_COAUTHOR" || true; }
+TARGET="."; RANGE=""; MSG_FILE=""; found=0
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --path)  TARGET="$2"; shift 2 ;;
+    --range) RANGE="$2";  shift 2 ;;
+    --msg-file) MSG_FILE="$2"; shift 2 ;;
+    -h|--help) sed -n '2,10p' "$0"; exit 0 ;;
+    *) echo "unknown argument: $1" >&2; exit 2 ;;
+  esac
+done
+
+report() { echo "ATTRIBUTION VIOLATION — $1" >&2; found=1; }
+
+# 1. a single commit message (commit-msg hook)
+if [ -n "$MSG_FILE" ]; then
+  if not_dependabot < "$MSG_FILE" | grep -qiE "$PATTERN"; then
+    report "commit message contains forbidden attribution"
+    not_dependabot < "$MSG_FILE" | grep -inE "$PATTERN" >&2 || true
+  fi
+  exit "$found"
+fi
+
+cd "$TARGET"
+
+# 2. commit messages, author and committer identities in the range
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  if [ -z "$RANGE" ]; then
+    if git rev-parse --verify -q origin/main >/dev/null; then RANGE="origin/main..HEAD"; else RANGE="HEAD"; fi
+  fi
+  if hits="$(git log --format='%H%n%B%n%an <%ae>%n%cn <%ce>' "$RANGE" 2>/dev/null | not_dependabot | grep -inE "$PATTERN" || true)"; then
+    if [ -n "$hits" ]; then
+      report "commit history in range '$RANGE'"
+      echo "$hits" >&2
+    fi
+  fi
+fi
+
+# 3. the working tree
+#    The enforcement machinery necessarily contains the forbidden words, and a
+#    repository may allow-list additional paths in .attribution-guard-ignore
+#    (one grep -E pattern per line, # for comments).
+SELF_EXCLUDES=(
+  --exclude=attribution-guard.sh --exclude=attribution-guard.yml
+  --exclude=install-git-hooks.sh --exclude=commit-msg --exclude=pre-push
+  --exclude=CONTRIBUTING.md --exclude=.attribution-guard-ignore
+)
+# -i, like the commit scans above. Without it this scan was case-sensitive while
+# the message scans were not, so "Generated with ..." in a file passed while the
+# identical text in a commit message was caught. The words being forbidden are
+# ordinary English that tools capitalise however they like.
+# Build output and generated material are excluded because a hit there is never
+# something anybody wrote: compiled assemblies embed tool names, and a generated
+# certificate embeds whatever its generator was called. bin, obj, packages and
+# certs were added to five repository copies as each one met the problem, and
+# this master copy never got them -- so reinstalling from here would have
+# silently removed the exclusions those repositories depend on. Kept in step
+# now; change this copy first and redistribute with install-git-hooks.sh.
+tree_hits="$(grep -rIilE "$PATTERN" . \
+  --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=target \
+  --exclude-dir=build --exclude-dir=vendor --exclude-dir=site \
+  --exclude-dir=.githooks --exclude-dir=bin --exclude-dir=obj \
+  --exclude-dir=packages --exclude-dir=certs \
+  "${SELF_EXCLUDES[@]}" 2>/dev/null || true)"
+
+if [ -n "$tree_hits" ] && [ -f .attribution-guard-ignore ]; then
+  ignore_re="$(grep -vE '^\s*(#|$)' .attribution-guard-ignore | paste -sd'|' -)"
+  [ -n "$ignore_re" ] && tree_hits="$(printf '%s\n' "$tree_hits" | grep -vE "$ignore_re" || true)"
+fi
+if [ -n "$tree_hits" ]; then
+  report "files in the working tree"
+  echo "$tree_hits" >&2
+fi
+
+if [ "$found" -eq 0 ]; then
+  echo "attribution-guard: clean"
+else
+  cat >&2 <<'EOF'
+
+These repositories must contain no AI-assistant attribution in commits,
+documentation, code comments, issues, or release notes. Remove the offending
+text (and amend or rebase the commits) before pushing.
+EOF
+fi
+exit "$found"

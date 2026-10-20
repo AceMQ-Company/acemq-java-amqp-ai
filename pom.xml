@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.acemq</groupId>
+  <artifactId>acemq-java-amqp-ai</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>AceMQ AI adapters</name>
+  <description>A model call that behaves like any other unreliable downstream: bounded
+    concurrency, retries in the broker, a dead-letter queue, idempotency, back-pressure and
+    metrics. Local Ollama by default; hosted providers by configuration.</description>
+  <url>https://acemq.org/</url>
+
+  <organization>
+    <name>AceMQ</name>
+    <url>https://acemq.com</url>
+  </organization>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Felipe Gutierrez</name>
+      <organization>AceMQ</organization>
+      <organizationUrl>https://acemq.com</organizationUrl>
+    </developer>
+  </developers>
+
+  <modules>
+    <module>acemq-ai-core</module>
+    <module>acemq-ai-test</module>
+    <module>acemq-ai-anthropic</module>
+  </modules>
+
+  <!-- Its own version line, starting at 0.1.0. Each release names the acemq-java-amqp it
+       was tested against (acemq.version below) and is re-released every library round. -->
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <!-- Java 11, matching acemq-java-amqp (ADR-015). Nothing here needs more: the HTTP
+         adapters use java.net.http, and the hosted SDK module runs on 8. -->
+    <maven.compiler.release>11</maven.compiler.release>
+
+    <acemq.version>0.7.15</acemq.version>
+    <!-- Kept in step with acemq-java-amqp so an application with both gets one Jackson. -->
+    <jackson.version>2.22.3</jackson.version>
+    <slf4j.version>2.0.20</slf4j.version>
+    <micrometer.version>1.17.1</micrometer.version>
+    <anthropic.sdk.version>2.34.0</anthropic.sdk.version>
+
+    <maven.compiler.plugin.version>3.16.0</maven.compiler.plugin.version>
+    <maven.surefire.plugin.version>3.6.0</maven.surefire.plugin.version>
+    <maven.failsafe.plugin.version>3.6.0</maven.failsafe.plugin.version>
+
+    <!-- Level with acemq-java-amqp: acemq-amqp-test brings JUnit with it. -->
+    <junit.version>6.1.3</junit.version>
+    <assertj.version>3.27.7</assertj.version>
+    <awaitility.version>4.3.0</awaitility.version>
+  </properties>
+
+  <!-- The acemq.org feed, served from GitHub Pages. Distribution is GitHub-hosted only. -->
+  <repositories>
+    <repository>
+      <id>acemq</id>
+      <url>https://acemq.org/maven/</url>
+    </repository>
+  </repositories>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${jackson.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.acemq</groupId>
+        <artifactId>acemq-amqp-core</artifactId>
+        <version>${acemq.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.acemq</groupId>
+        <artifactId>acemq-amqp-test</artifactId>
+        <version>${acemq.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.acemq</groupId>
+        <artifactId>acemq-amqp-patterns</artifactId>
+        <version>${acemq.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.acemq</groupId>
+        <artifactId>acemq-ai-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.acemq</groupId>
+        <artifactId>acemq-ai-test</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-core</artifactId>
+        <version>${micrometer.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>${junit.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>${assertj.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.awaitility</groupId>
+        <artifactId>awaitility</artifactId>
+        <version>${awaitility.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven.compiler.plugin.version}</version>
+          <configuration>
+            <release>${maven.compiler.release}</release>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <!-- Unit tests on every build. Anything named *LiveIT calls a real model -- a local
+           Ollama or a hosted provider with the user's own key -- and runs only under -Plive,
+           so CI and releases never call a model and never skip a test either. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven.surefire.plugin.version}</version>
+        <configuration>
+          <excludes>
+            <exclude>**/*IT.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>live</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>${maven.failsafe.plugin.version}</version>
+            <configuration>
+              <includes>
+                <include>**/*LiveIT.java</include>
+              </includes>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>integration-test</goal>
+                  <goal>verify</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

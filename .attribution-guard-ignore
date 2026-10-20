@@ -1,0 +1,8 @@
+# This repository adapts a model provider whose company name is one of the words
+# the guard looks for. The paths below name that provider, its SDK and its models
+# of necessity; they are documentation of an integration, not attribution.
+# Everything else in the tree, and every commit message, is still scanned.
+^\./acemq-ai-anthropic/
+^\./pom\.xml$
+^\./README\.md$
+^\./docs/providers\.md$
