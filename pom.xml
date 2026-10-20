@@ -153,8 +153,8 @@
       </plugins>
     </pluginManagement>
     <plugins>
-      <!-- Unit tests on every build. Anything named *LiveIT calls a real model -- a local
-           Ollama or a hosted provider with the user's own key -- and runs only under -Plive,
+      <!-- Unit tests on every build. Anything named *LiveIT calls a real model (a local
+           Ollama or a hosted provider with the user's own key) and runs only under -Plive,
            so CI and releases never call a model and never skip a test either. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
