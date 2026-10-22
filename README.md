@@ -12,9 +12,10 @@ call that behaves like any other unreliable downstream.** Bounded concurrency, r
 broker, a dead-letter queue, idempotency, back-pressure and token metrics, for every team that
 puts an LLM behind a queue.
 
-> **Status: in development, not released.** Phase 1: the model interface, the Ollama,
-> OpenAI-compatible and hosted Messages API adapters, the egress guard, the queue handler with
-> its token budget, and a scripted model for tests.
+> **Status: 0.1.0, the first release** (2026-10-21), tested against `acemq-java-amqp` 0.7.18.
+> Phase 1: the model interface, the Ollama, OpenAI-compatible and hosted Messages API adapters,
+> the egress guard, the queue handler with its token budget, and a scripted model for tests.
+> The API may change in any `0.x` release.
 
 Local Ollama is the default. Hosted providers are configuration, with your own key:
 
