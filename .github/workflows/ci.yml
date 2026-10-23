@@ -62,6 +62,29 @@ jobs:
             **/target/failsafe-reports/**
           retention-days: 7
 
+  # The AceMQ TCK's AI area (spec/14-ai.md). The runner plays the model; nothing calls a
+  # real one. The cases are pending in the kit (only this adapter implements the area),
+  # so they run with pending and only. Pinned to the kit's commit until its next tag.
+  tck:
+    name: AceMQ TCK (AI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Build the driver
+        run: >-
+          mvn -B --no-transfer-progress -q -pl acemq-ai-test -am test-compile
+          dependency:build-classpath -Dmdep.outputFile=target/tck.classpath -Dmdep.includeScope=test
+      - uses: AceMQ-Company/acemq-amqp-tck@0d6ddc2fa88972989a92af077aa7335732043d19
+        with:
+          driver: java -cp "acemq-ai-test/target/test-classes:acemq-ai-test/target/classes:$(cat acemq-ai-test/target/tck.classpath)" org.acemq.ai.tck.TckDriver
+          only: "^AI-"
+          pending: "true"
+
   badge-matches-the-release:
     name: the README badge names the current release
     runs-on: ubuntu-latest

@@ -154,6 +154,28 @@ over HTTP for testing a real adapter. Nothing in this repository's CI calls a mo
 `mvn verify -Plive` runs the `*LiveIT` tests against a local Ollama that already has a model
 pulled, and against hosted providers when their keys are set. Each skips itself otherwise.
 
+## Conformance and fault drills
+
+The behaviour above is a contract, not a description: the
+[AceMQ TCK](https://github.com/AceMQ-Company/acemq-amqp-tck) states it as
+`AMQP-AI-001`…`007` (`spec/14-ai.md`) and checks it against a real RabbitMQ, with the runner
+playing the model. Every push runs the seven cases through this repository's driver
+(`acemq-ai-test/src/test/java/org/acemq/ai/tck/TckDriver.java`):
+
+| Case | What it checks |
+|---|---|
+| AI-001 | one call per message, `acemq.ai.tokens` equal to the model's counts, outcome `answered` |
+| AI-002 | a 429 pauses the consumer for at least `retry-after` and the message takes a retry rung |
+| AI-003 | a call with no answer in time is `timed_out` and asked again through the retry ladder |
+| AI-004 | a 400 goes to `{queue}.dlq` after one call, whatever the retry policy |
+| AI-005 | a refusal is outcome `refused` and a dead letter saying so, after one call |
+| AI-006 | the connection cut after the answer and before the ack: the redelivery calls nothing |
+| AI-007 | an exhausted token budget pauses the consumer, and the refilled window resumes it |
+
+The release gate also runs the chaos framework's `model_call` drill against the newest
+release: the broker node is killed halfway through a model call and started again, and every
+message must be handled with the model asked once per message.
+
 ## What it will not do
 
 An agent framework (tool-calling loops, memory, planners), RAG or vector stores, embedding

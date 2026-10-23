@@ -11,6 +11,18 @@ the `acemq-java-amqp` version it was tested against.
 
 ## [Unreleased]
 
+### Added
+
+- A TCK driver (`acemq-ai-test/src/test/java/org/acemq/ai/tck/TckDriver.java`)
+  and a `tck` CI job running the AceMQ TCK's AI cases, AI-001 to AI-007
+  (`spec/14-ai.md`: token counts, rate-limit pause and retry, timeout retry, a
+  bad request and a refusal dead-lettered after one call, no second call after
+  a redelivery, token budget pause and resume). All seven pass. Nothing in the
+  library's behaviour changed to pass them.
+- The release gate's `model_call` fault drill (the chaos framework kills the
+  broker node halfway through a model call): every message handled and the
+  model asked once per message, against 0.1.1.
+
 ## [0.1.1] - 2026-10-22
 
 ### Changed

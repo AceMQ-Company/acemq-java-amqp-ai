@@ -103,6 +103,11 @@
       </dependency>
       <dependency>
         <groupId>org.acemq</groupId>
+        <artifactId>acemq-transport-rabbitmq</artifactId>
+        <version>${acemq.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.acemq</groupId>
         <artifactId>acemq-ai-core</artifactId>
         <version>${project.version}</version>
       </dependency>
