@@ -11,9 +11,21 @@ the `acemq-java-amqp` version it was tested against.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-22
+
 ### Changed
 
-- Built and tested against `acemq-java-amqp` 0.7.19, from 0.7.18.
+- Built and tested against `acemq-java-amqp` 0.7.20, from 0.7.18. Nothing in
+  this library's API changed. What a queue handler gains from the library:
+  - **A park or dead letter the broker refuses is requeued after a one-second
+    pause** (0.7.20) instead of at once, so a model request that cannot be
+    parked or dead-lettered is no longer refused at broker speed until a
+    quorum queue's delivery limit drops it. The pause holds one prefetch slot.
+  - **Closing a consumer waits for the handler that is running**, up to 20
+    seconds (0.7.19), so a model call in flight finishes and acks instead of
+    being redelivered and paid for twice.
+  - **A pipeline hop keeps unknown `x-acemq-` headers** and the outbox relay
+    publishes a record's headers (0.7.19).
 
 ## [0.1.0] - 2026-10-21
 

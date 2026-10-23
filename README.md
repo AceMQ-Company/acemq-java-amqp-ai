@@ -2,7 +2,7 @@
 
 [![ci](https://github.com/AceMQ-Company/acemq-java-amqp-ai/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/AceMQ-Company/acemq-java-amqp-ai/actions/workflows/ci.yml)
 [![authorship guard](https://github.com/AceMQ-Company/acemq-java-amqp-ai/actions/workflows/attribution-guard.yml/badge.svg?branch=main)](https://github.com/AceMQ-Company/acemq-java-amqp-ai/actions/workflows/attribution-guard.yml)
-[![version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/AceMQ-Company/acemq-java-amqp-ai/releases)
+[![version](https://img.shields.io/badge/version-0.1.1-blue)](https://github.com/AceMQ-Company/acemq-java-amqp-ai/releases)
 [![artifacts](https://img.shields.io/badge/artifacts-acemq.org%2Fmaven-blue)](https://acemq.org/maven/)
 [![license](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-11%2B-orange)](#requirements)
@@ -12,7 +12,7 @@ call that behaves like any other unreliable downstream.** Bounded concurrency, r
 broker, a dead-letter queue, idempotency, back-pressure and token metrics, for every team that
 puts an LLM behind a queue.
 
-> **Status: 0.1.0, the first release** (2026-10-21), tested against `acemq-java-amqp` 0.7.18.
+> **Status: 0.1.1** (2026-10-22), tested against `acemq-java-amqp` 0.7.20.
 > Phase 1: the model interface, the Ollama, OpenAI-compatible and hosted Messages API adapters,
 > the egress guard, the queue handler with its token budget, and a scripted model for tests.
 > The API may change in any `0.x` release.
@@ -85,7 +85,7 @@ asks the model again and may get a different answer. For reproducibility on Olla
 | `acemq-ai-anthropic` | 11 | The hosted Messages API through the official Java SDK, with the SDK's retries set to 0 |
 
 `acemq-ai-core` depends on `acemq-amqp-core` (whose version you choose; tested against
-0.7.19), Jackson and SLF4J, all already on an AceMQ classpath. Micrometer is optional.
+0.7.20), Jackson and SLF4J, all already on an AceMQ classpath. Micrometer is optional.
 
 ```xml
 <repository>
@@ -96,7 +96,7 @@ asks the model again and may get a different answer. For reproducibility on Olla
 <dependency>
   <groupId>org.acemq</groupId>
   <artifactId>acemq-ai-core</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
 </dependency>
 ```
 

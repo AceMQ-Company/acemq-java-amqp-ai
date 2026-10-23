@@ -52,7 +52,7 @@
          adapters use java.net.http, and the hosted SDK module runs on 8. -->
     <maven.compiler.release>11</maven.compiler.release>
 
-    <acemq.version>0.7.19</acemq.version>
+    <acemq.version>0.7.20</acemq.version>
     <!-- Kept in step with acemq-java-amqp so an application with both gets one Jackson. -->
     <jackson.version>2.22.3</jackson.version>
     <slf4j.version>2.0.20</slf4j.version>
